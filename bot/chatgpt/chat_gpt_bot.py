@@ -64,7 +64,7 @@ class ChatGPTBot(Bot, OpenAIImage):
             if "Hedy" in context["msg"].other_user_nickname or "浪里个浪" in context["msg"].other_user_nickname:
                 system_prompt = conf().get("character_desc_private","")
                 session = self.sessions.session_query(query, session_id, system_prompt)
-                logger.debug("[CHATGPT] session use private system_prompt={}".format(system_prompt))
+                logger.info("[CHATGPT] session use private system_prompt={}".format(system_prompt))
             else:
                 session = self.sessions.session_query(query, session_id)
 
