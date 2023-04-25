@@ -61,7 +61,12 @@ class ChatGPTBot(Bot, OpenAIImage):
                 reply = Reply(ReplyType.INFO, "配置已更新")
             if reply:
                 return reply
-            session = self.sessions.session_query(query, session_id)
+            if "Hedy" in context["msg"].other_user_nickname or "浪里个浪" in context["msg"].other_user_nickname:
+                system_prompt = conf().get("character_desc_private","")
+                session = self.sessions.session_query(query, session_id, system_prompt)
+            else:
+                session = self.sessions.session_query(query, session_id)
+
             logger.debug("[CHATGPT] session query={}".format(session.messages))
 
             api_key = context.get("openai_api_key")

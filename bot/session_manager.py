@@ -61,8 +61,8 @@ class SessionManager(object):
         session = self.sessions[session_id]
         return session
 
-    def session_query(self, query, session_id):
-        session = self.build_session(session_id)
+    def session_query(self, query, session_id, system_prompt=None):
+        session = self.build_session(session_id,system_prompt)
         session.add_query(query)
         try:
             max_tokens = conf().get("conversation_max_tokens", 1000)
