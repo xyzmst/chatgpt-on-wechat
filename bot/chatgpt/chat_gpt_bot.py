@@ -61,7 +61,9 @@ class ChatGPTBot(Bot, OpenAIImage):
                 reply = Reply(ReplyType.INFO, "配置已更新")
             if reply:
                 return reply
-            if "Hedy" in context["msg"].other_user_nickname or "浪里个浪" in context["msg"].other_user_nickname:
+            group_name = context["msg"].other_user_nickname
+            logger.info("[CHATGPT] session use private group_name={}".format(group_name))
+            if "Hedy" in group_name or "浪里个浪" in group_name:
                 system_prompt = conf().get("character_desc_private","")
                 session = self.sessions.session_query(query, session_id, system_prompt)
                 logger.info("[CHATGPT] session use private system_prompt={}".format(system_prompt))
