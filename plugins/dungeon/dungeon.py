@@ -19,25 +19,39 @@ class StoryTeller:
         bot.sessions.clear_session(sessionid)
         self.first_interact = True
         self.story = story
+        self.story_list = []
 
     def reset(self):
         self.bot.sessions.clear_session(self.sessionid)
         self.first_interact = True
+        self.story_list = []
 
-    def action(self, user_action):
+    def action(self, user_action, received_msg):
         if user_action[-1] != "。":
             user_action = user_action + "。"
         if self.first_interact:
             prompt = (
-                """现在来充当一个文字冒险游戏，描述时候注意节奏，不要太快，仔细描述各个人物的心情和周边环境。一次只需写四到六句话。
+                """现在开始文字冒险游戏。请在回复时控制节奏，描述当前场景中的人物、地点、氛围等细节。每次回复时，请确保描述完整的场景细节，并控制回复长度在四到六句话之间。请注意，要求输出的内容不要偏离当前故事情节。
             开头是，"""
                 + self.story
                 + " "
                 + user_action
             )
+            self.story_list.append(self.story)
+            self.story_list.append(user_action)
             self.first_interact = False
         else:
-            prompt = """继续，一次只需要续写四到六句话，总共就只讲5分钟内发生的事情。""" + user_action
+            prompt = (
+                    """继续，一次只需要续写四到六句话，总共就只讲5分钟内发生的事情。"""
+                    + user_action
+            )
+            self.story_list.append(received_msg)
+            self.story_list.append(user_action)
+            if len(self.story_list) >= 2:
+                prompt = (
+                       self.story_list[-2] + "," + self.story_list[-1] + "请继续描述："
+                )
+            logger.debug("[StoryTeller] action prompt: %s" % prompt)
         return prompt
 
 
@@ -68,6 +82,22 @@ class Dungeon(Plugin):
             return
         bot = Bridge().get_bot("chat")
         content = e_context["context"].content[:]
+        last_msg = e_context.econtext['context'].kwargs['msg']
+        receivedMsgs = e_context['channel'].receivedMsgs
+        # 假设 messages 是一个 ExpiredDict 对象，包含多个 ChatMessage 对象
+        max_time = float("-inf")  # 初始化最大时间为负无穷
+        receivedMsg = None
+        max_message = None  # 初始化最大消息为 None
+        for key in receivedMsgs.keys():  # 遍历所有消息
+            message = receivedMsgs.get(key)
+            if max_time < message.create_time < last_msg.create_time:  # 如果该消息的创建时间比当前最大时间更晚
+                max_time = message.create_time  # 更新最大时间
+                max_message = message  # 更新最大消息
+        if max_message is not None:  # 如果找到了最大时间的消息
+            # 进行相应的操作，比如输出该消息的内容
+            logger.info("[Dungeon] inited %s" % max_message.content)
+            receivedMsg = max_message.content
+
         clist = e_context["context"].content.split(maxsplit=1)
         sessionid = e_context["context"]["session_id"]
         logger.debug("[Dungeon] on_handle_context. content: %s" % clist)
@@ -90,7 +120,7 @@ class Dungeon(Plugin):
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS  # 事件结束，并跳过处理context的默认逻辑
             else:
-                prompt = self.games[sessionid].action(content)
+                prompt = self.games[sessionid].action(content, receivedMsg)
                 e_context["context"].type = ContextType.TEXT
                 e_context["context"].content = prompt
                 e_context.action = EventAction.BREAK  # 事件结束，不跳过处理context的默认逻辑
