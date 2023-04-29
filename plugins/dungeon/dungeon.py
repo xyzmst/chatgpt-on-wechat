@@ -57,7 +57,7 @@ class StoryTeller:
                         + self.story
                         + "，故事发展到这："
                         + self.story_list[-1]
-                        + "接下来故事发展路线提示："
+                        + "，接下来故事发展路线提示："
                         + user_action
                 )
             logger.debug("[StoryTeller] action prompt: %s" % prompt)
