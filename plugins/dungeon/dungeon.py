@@ -54,9 +54,9 @@ class StoryTeller:
                 prompt = (
                         """继续，一次只需要续写四到六句话，总共就只讲5分钟内发生的事情。请注意，要求输出的内容不要偏离当前故事情节。"""
                         + user_action
-                        + "故事的开头是："
+                        + "故事的背景："
                         + self.story
-                        + "，上一个场景是："
+                        + "，故事发展到这："
                         + self.story_list[-1]
                 )
             logger.debug("[StoryTeller] action prompt: %s" % prompt)
